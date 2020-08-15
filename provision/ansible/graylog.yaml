@@ -1,0 +1,30 @@
+---
+- hosts: all
+  become: yes
+  become_user: root
+  become_method: sudo
+  tasks:
+    - name: Garantindo /etc/hosts
+      lineinfile:
+        path: /etc/hosts
+        line: "{{ item }}"
+      with_items:
+        - 172.16.0.11 security
+        - 172.16.0.12 graylog
+        - 172.16.0.13 kibana
+
+    - name: Instalando pacotes de dependencias para o curso
+      apt:
+        name: ['unzip', 'wget', 'elinks', 'rsync']
+
+    - name: Adicionar usuário suporte
+      user:
+        name: suporte
+        shell: /bin/bash
+        password : $1$QbUARykG$p2nthVG8AkDvabKPHwboa1
+
+    - name: Criando o arquivo 98_4linux
+      copy:
+        src: files/98_4linux
+        dest: /etc/sudoers.d
+        mode: 0644

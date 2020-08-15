@@ -1,0 +1,24 @@
+---
+- name: security
+  box: 4linux/ubuntu16.04
+  hostname: security
+  ipaddress: 172.16.0.11
+  memory: 512
+  cpus: 1
+  provision: provision/ansible/security.yaml
+
+- name: graylog
+  box: 4linux/debian9
+  hostname: graylog
+  ipaddress: 172.16.0.12
+  memory: 1536
+  cpus: 1
+  provision: provision/ansible/graylog.yaml
+
+- name: kibana
+  box: 4linux/centos7
+  hostname: kibana
+  ipaddress: 172.16.0.13
+  memory: 2048
+  cpus: 1
+  provision: provision/ansible/kibana.yaml
