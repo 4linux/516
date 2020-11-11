@@ -9,13 +9,13 @@
         path: /etc/hosts
         line: "{{ item }}"
       with_items:
-        - 172.16.0.11 security
+        - 172.16.0.11 webserver
         - 172.16.0.12 graylog
         - 172.16.0.13 kibana
 
     - name: Instalando pacotes de dependencias para o curso
       apt:
-        name: ['unzip', 'wget', 'elinks', 'rsync']
+        name: ['unzip', 'wget', 'elinks', 'rsync', 'vim']
 
     - name: Adicionar usuário suporte
       user:
