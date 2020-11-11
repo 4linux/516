@@ -1,6 +1,6 @@
 ---
 - name: webserver
-  box: debian/buster64
+  box: trombik/ansible-centos-7.3-x86_64
   hostname: webserver
   ipaddress: 172.16.0.11
   memory: 2048
@@ -8,7 +8,7 @@
   provision: provision/ansible/webserver.yaml
 
 - name: graylog-audit
-  box: ubuntu/bionic64
+  box: trombik/ansible-ubuntu-18.04-amd64
   hostname: graylog
   ipaddress: 172.16.0.12
   memory: 2560
@@ -16,7 +16,7 @@
   provision: provision/ansible/graylog.yaml
 
 - name: kibana-audit
-  box: centos/7
+  box: darkwizard242/ansibledebian10
   hostname: kibana
   ipaddress: 172.16.0.13
   memory: 2048
