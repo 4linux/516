@@ -72,4 +72,4 @@
       shell: docker network create --driver=overlay traefik
 
     - name: Provisionar o Traefik e Wordpress no cluster Swarm
-      shell: docker stack deploy -c /home/suporte/swar-lab/wordpress-deploy.yaml traefik-wordpress
+      shell: docker stack deploy -c /home/suporte/swarm-lab/wordpress-deploy.yaml traefik-wordpress
