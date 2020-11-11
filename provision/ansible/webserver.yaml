@@ -9,15 +9,11 @@
         path: /etc/hosts
         line: "{{ item }}"
       with_items:
-        - 172.16.0.11 security
+        - 172.16.0.11 webserver
         - 172.16.0.12 graylog
         - 172.16.0.13 kibana
 
-    - name: Instalando pacotes de dependencias para o curso
-      apt:
-        name: ['unzip', 'wget', 'elinks', 'rsync']
-
-    - name: Adicionar usuário suporte
+    - name: Adiciona usuario suporte
       user:
         name: suporte
         shell: /bin/bash
@@ -28,3 +24,67 @@
         src: files/98_4linux
         dest: /etc/sudoers.d
         mode: 0644
+
+    - name: Criando diretório /home/suporte/traefik-lab
+      synchronize:
+        src: files/traefik-lab
+        dest: /home/suporte
+
+    - name: Instala pacotes que permitem que o apt seja usado sobre HTTPS
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg-agent
+        - software-properties-common
+        - vim
+
+    - name: Adiciona uma chave de assinatura apt para o Docker
+      apt_key:
+        url: https://download.docker.com/linux/debian/gpg
+        state: present
+
+    - name: Adiciona repositorio apt para versao estavel
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/debian buster stable
+        state: present
+
+    - name: Instala o Docker e suas dependencias
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+
+    - name: Adiciona o usuario suporte no grupo docker
+      user:
+        name: suporte
+        group: docker
+
+    - name: Adiciona o usuario vagrant no grupo docker
+      user:
+        name: vagrant
+        group: docker
+        
+    - name: Reinicia o Docker
+      service:
+        name: docker
+        state: restarted
+
+    - name: Inicializa o cluster Swarm
+      shell: docker swarm init --advertise-addr 172.16.0.11
+  
+    - name: Cria a rede traefik
+      shell: docker network create --driver=overlay traefik
+
+    - name: Provisionar o Traefik e Wordpress no cluster Swarm
+      shell: docker stack deploy -c /home/suporte/traefik-lab/wordpress-deploy.yaml traefik-wordpress
