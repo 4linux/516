@@ -1,0 +1,68 @@
+version: "3.3"
+
+services:
+
+  traefik:
+    image: traefik:1.7
+    ports:
+      - "80:80"
+      - "8080:8080"
+      - "443:443"
+    networks:
+      - traefik
+    command: >
+      --web
+      --docker
+      --docker.domain=4labs.example
+      --docker.swarmmode
+      --docker.watch
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    deploy:
+      restart_policy:
+       condition: on-failure
+
+  wordpress:
+    image: "wordpress:4.8-apache"
+    environment:
+      WORDPRESS_DB_HOST: wordpress-mysql
+      WORDPRESS_DB_PASSWORD: wordpresspass
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.port=80"
+        - "traefik.backend=wordpress"
+        - "traefik.docker.network=traefik"
+        - "traefik.backend.loadbalancer.swarm=true"
+        - "traefik.frontend.rule=Host:wordpress.4labs.example"
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+    volumes:
+      - "wordpress:/var/www/html"
+    networks:
+      - traefik
+
+  wordpress-mysql:
+    image: "mysql:5.6"
+    environment:
+      MYSQL_ROOT_PASSWORD: wordpresspass
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+    volumes:
+      - "wordpress-mysql:/var/lib/mysql"
+    networks:
+      - traefik
+
+volumes:
+  wordpress:
+  wordpress-mysql:
+networks:
+  traefik:
+    external: true
