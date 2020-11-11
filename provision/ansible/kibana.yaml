@@ -15,7 +15,7 @@
 
     - name: Instalando pacotes de dependencias para o curso
       apt:
-        name: ['unzip', 'wget', 'elinks', 'rsync']
+        name: ['unzip', 'wget', 'elinks', 'rsync', 'vim']
 
     - name: Adicionar usuário suporte
       user:
