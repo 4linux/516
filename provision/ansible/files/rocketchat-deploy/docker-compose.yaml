@@ -1,0 +1,53 @@
+version: '3'
+
+services:
+  rocketchat:
+    image: rocketchat/rocket.chat:latest
+    command: >
+      bash -c
+        "for i in `seq 1 30`; do
+          node main.js &&
+          s=$$? && break || s=$$?;
+          echo \"Tried $$i times. Waiting 5 secs...\";
+          sleep 5;
+        done; (exit $$s)"
+    volumes:
+      - "./uploads:/app/uploads"
+    environment:
+      - PORT=3000
+      - ROOT_URL=http://172.16.0.11:3000
+      - MONGO_URL=mongodb://mongo:27017/rocketchat
+      - MONGO_OPLOG_URL=mongodb://mongo:27017/local
+    ports:
+      - 3000:3000
+    networks:
+      - traefik
+
+  mongo:
+    image: mongo:4.0
+    volumes:
+     - "./data/db:/data/db"
+    command: mongod --smallfiles --oplogSize 128 --replSet rs0 --storageEngine=mmapv1
+    networks:
+      - traefik
+
+  mongo-init-replica:
+    image: mongo:4.0
+    command: >
+      bash -c
+        "for i in `seq 1 30`; do
+          mongo mongo/rocketchat --eval \"
+            rs.initiate({
+              _id: 'rs0',
+              members: [ { _id: 0, host: 'localhost:27017' } ]})\" &&
+          s=$$? && break || s=$$?;
+          echo \"Tried $$i times. Waiting 5 secs...\";
+          sleep 5;
+        done; (exit $$s)"
+
+    networks:
+      - traefik
+
+networks:
+  traefik:
+    external: true

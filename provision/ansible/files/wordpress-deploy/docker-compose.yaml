@@ -1,0 +1,60 @@
+version: "3"
+
+services:
+  traefik:
+    image: traefik:1.7
+    ports:
+      - "80:80"
+      - "8080:8080"
+      - "443:443"
+    networks:
+      - traefik
+    command: >
+      --web
+      --docker
+      --docker.domain=4labs.example
+      --docker.watch
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  wordpress-mysql:
+    image: "mysql:5.6"
+    logging:
+      driver: "gelf"
+      options:
+        gelf-address: "udp://172.16.0.12:12201"
+    environment:
+      MYSQL_ROOT_PASSWORD: wordpresspass
+    restart: always
+    volumes:
+      - "wordpress-mysql:/var/lib/mysql"
+    networks:
+      - traefik
+
+  wordpress:
+    image: "wordpress:4.8-apache"
+    logging:
+      driver: "gelf"
+      options:
+        gelf-address: "udp://172.16.0.12:12201"
+    environment:
+      WORDPRESS_DB_HOST: wordpress-mysql
+      WORDPRESS_DB_PASSWORD: wordpresspass
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.port=80"
+      - "traefik.backend=wordpress"
+      - "traefik.docker.network=traefik"
+      - "traefik.frontend.rule=Host:wordpress.4labs.example"
+    volumes:
+      - "wordpress:/var/www/html"
+    networks:
+      - traefik
+
+volumes:
+  wordpress:
+  wordpress-mysql:
+networks:
+  traefik:
+    external: true

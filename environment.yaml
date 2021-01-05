@@ -1,5 +1,5 @@
 ---
-- name: webserver
+- name: webserver-audit
   box: trombik/ansible-centos-7.3-x86_64
   hostname: webserver
   ipaddress: 172.16.0.11
@@ -19,6 +19,6 @@
   box: darkwizard242/ansibledebian10
   hostname: kibana
   ipaddress: 172.16.0.13
-  memory: 2048
+  memory: 2560
   cpus: 1
   provision: provision/ansible/kibana.yaml

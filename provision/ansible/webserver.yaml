@@ -9,9 +9,9 @@
         path: /etc/hosts
         line: "{{ item }}"
       with_items:
-        - 172.16.0.11 webserver wordpress.4labs.example
+        - 172.16.0.11 webserver wordpress.4labs.example chat.4labs.example
         - 172.16.0.12 graylog
-        - 172.16.0.13 kibana
+        - 172.16.0.13 kibana kibana.4labs.example
 
     - name: Adiciona usuario suporte
       user:
@@ -25,12 +25,17 @@
         dest: /etc/sudoers.d
         mode: 0644
 
-    - name: Criando diretório /home/suporte/swarm-lab
+    - name: Criando diretorio /home/suporte/wordpress-deploy
       synchronize:
-        src: files/swarm-lab
+        src: files/wordpress-deploy
         dest: /home/suporte
 
-    - name: Instalando pacotes de dependencias para o curso de Kubernetes
+    - name: Criando diretorio /home/suporte/rocketchat-deploy
+      synchronize:
+        src: files/rocketchat-deploy
+        dest: /home/suporte
+
+    - name: Instalando pacotes de dependencias para o Docker
       yum:
         name: ['unzip', 'wget', 'elinks', 'rsync', 'git', 'vim', 'yum-utils', 'device-mapper-persistent-data', 'lvm2']
 
@@ -60,17 +65,42 @@
         name: vagrant
         group: docker
         
-    - name: Reinicia o Docker
+    - name: Ativa o servico do Docker
       service:
         name: docker
-        state: restarted
         enabled: yes
+        state: restarted
 
-    - name: Inicializa o cluster Swarm
-      shell: docker swarm init --advertise-addr 172.16.0.11
-  
     - name: Cria a rede traefik
-      shell: docker network create --driver=overlay traefik
+      shell: docker network create traefik
 
-    - name: Provisionar o Traefik e Wordpress no cluster Swarm
-      shell: docker stack deploy -c /home/suporte/swarm-lab/wordpress-deploy.yaml traefik-wordpress
+    - name: Download do Docker Compose
+      get_url:
+        url: https://github.com/docker/compose/releases/download/1.25.5/docker-compose-Linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: 0755
+
+    - name: Deploy do Wordpress via Docker Compose
+      shell: /usr/local/bin/docker-compose up -d
+      args:
+        chdir: /home/suporte/wordpress-deploy
+      
+    - name: Alterando arquivo do SELinux
+      lineinfile: 
+          path: /etc/selinux/config
+          regexp: '^SELINUX='
+          line: 'SELINUX=disabled'
+
+    - name: Mudando para permissivo a politica do SELinux
+      selinux:
+        policy: targeted
+        state: permissive
+
+    - name: Desabilitando o Firewall
+      command: systemctl disable firewalld
+
+    - name: Parando FirewallD
+      command: systemctl stop firewalld
+
+    - name: Reinicia a VM
+      command: reboot
