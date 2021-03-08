@@ -29,4 +29,28 @@
       apt:
         name: ['unzip', 'wget', 'elinks', 'rsync', 'vim']
 
+    - name: Criando diretorio /opt/filebeat
+      synchronize:
+        src: files/filebeat
+        dest: /opt
 
+    - name: Criando diretorio /opt/logstash
+      synchronize:
+        src: files/logstash
+        dest: /opt
+
+    - name: Criando diretorio /opt/metricbeat
+      synchronize:
+        src: files/metricbeat
+        dest: /opt
+
+    - name: Criando diretorio /opt/nginx
+      synchronize:
+        src: files/nginx
+        dest: /opt
+
+    - name: Criando o arquivo syslog-tls.conf
+      copy:
+        src: files/client/syslog-tls.conf
+        dest: /opt
+        mode: 0644

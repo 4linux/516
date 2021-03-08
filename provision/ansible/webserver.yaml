@@ -35,6 +35,17 @@
         src: files/rocketchat-deploy
         dest: /home/suporte
 
+    - name: Criando diretorio /opt/filebeat
+      synchronize:
+        src: files/filebeat
+        dest: /opt
+
+    - name: Criando o arquivo syslog-tls.conf
+      copy:
+        src: files/client/syslog-tls.conf
+        dest: /opt
+        mode: 0644
+
     - name: Instalando pacotes de dependencias para o Docker
       yum:
         name: ['unzip', 'wget', 'elinks', 'rsync', 'git', 'vim', 'yum-utils', 'device-mapper-persistent-data', 'lvm2']

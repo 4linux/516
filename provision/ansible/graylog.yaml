@@ -25,6 +25,23 @@
         dest: /etc/sudoers.d
         mode: 0644
 
+    - name: Criando diretorio /opt/filebeat
+      synchronize:
+        src: files/filebeat
+        dest: /opt
+
+    - name: Criando o arquivo syslog-tls.conf
+      copy:
+        src: files/server/syslog-tls.conf
+        dest: /opt
+        mode: 0644
+
+    - name: Criando o arquivo bkp-banco.sh
+      copy:
+        src: files/bkp-banco.sh
+        dest: /opt
+        mode: 0644
+
     - name: Instalando pacotes de dependencias para o curso
       apt:
         name: ['unzip', 'wget', 'elinks', 'rsync', 'vim']
