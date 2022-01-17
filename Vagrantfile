@@ -1,41 +1,33 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# Variaveis
-VAGRANTFILE_API_VERSION=2
 VAGRANT_DISABLE_VBOXSYMLINKCREATE=1
 
+vms = {
+  'webserver-audit' => {'memory' => '2048', 'cpus' => 1, 'ip' => '11', 'box' => 'devopsbox/centos-8.5-docker', 'provision' => 'provision/ansible/webserver.yaml'},
+  'graylog-audit' => {'memory' => '2560', 'cpus' => 1, 'ip' => '12', 'box' => 'devopsbox/ubuntu-20.04','provision' => 'provision/ansible/graylog.yaml'},
+  'kibana-audit' => {'memory' => '2560', 'cpus' => 1, 'ip' => '13', 'box' => 'devopsbox/debian-10.11', 'provision' => 'provision/ansible/kibana.yaml'}
+}
 
-# Chamando modulo YAML
-require 'yaml'
+Vagrant.configure('2') do |config|
 
-# Lendo o arquivo YAML com as configuracoes do ambiente
-env = YAML.load_file('environment.yaml')
+  config.vm.box_check_update = false
 
-# Limitando apenas a ultima versao estavel do Vagrant instalada
-Vagrant.require_version '>= 2.0.0'
+        if !(File.exists?('id_rsa'))
+          system("ssh-keygen -b 2048 -t rsa -f id_rsa -q -N ''")
+       end
 
-Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  # Iteracao com os servidores do ambiente
-  env.each do |env|
-    config.vm.define env['name'] do |srv|
-      srv.vm.box      = env['box']
-      srv.vm.hostname = env['hostname']
-      srv.vm.network 'private_network', ip: env['ipaddress']
-      if env['additional_interface'] == true
-        srv.vm.network 'private_network', ip: '1.0.0.100',
-          auto_config: false
+  vms.each do |name, conf|
+    config.vm.define "#{name}" do |k|
+      k.vm.box = "#{conf['box']}"
+      k.vm.hostname = "#{name}"
+      k.vm.network 'private_network', ip: "172.16.0.#{conf['ip']}"
+      k.vm.provider 'virtualbox' do |vb|
+        vb.memory = conf['memory']
+        vb.cpus = conf['cpus']
       end
-      srv.vm.provider 'virtualbox' do |vb|
-        vb.name   = env['name']
-        vb.memory = env['memory']
-        vb.cpus   = env['cpus']
-      end
-      srv.vm.provision 'ansible_local' do |ansible|
-        ansible.playbook           = env['provision']
-        ansible.install_mode       = 'pip'
-        ansible.become             = true
-        ansible.become_user        = 'root'
+      k.vm.provision 'ansible_local' do |ansible|
+        ansible.playbook = "#{conf['provision']}"
         ansible.compatibility_mode = '2.0'
       end
     end

@@ -13,18 +13,6 @@
         - 172.16.0.12 graylog
         - 172.16.0.13 kibana kibana.4labs.example
 
-    - name: Adiciona usuario suporte
-      user:
-        name: suporte
-        shell: /bin/bash
-        password : $1$QbUARykG$p2nthVG8AkDvabKPHwboa1
-
-    - name: Criando o arquivo 98_4linux
-      copy:
-        src: files/98_4linux
-        dest: /etc/sudoers.d
-        mode: 0644
-
     - name: Criando diretorio /home/suporte/wordpress-deploy
       synchronize:
         src: files/wordpress-deploy
@@ -46,41 +34,15 @@
         dest: /opt
         mode: 0644
 
-    - name: Instalando pacotes de dependencias para o Docker
-      yum:
-        name: ['unzip', 'wget', 'elinks', 'rsync', 'git', 'vim', 'yum-utils', 'device-mapper-persistent-data', 'lvm2']
-
-    - name: Adiciona repositorio do Docker
-      get_url:
-        url: https://download.docker.com/linux/centos/docker-ce.repo
-        dest: /etc/yum.repos.d/docer-ce.repo
-      become: yes
-
-    - name: Instala o Docker e suas dependencias
-      yum:
-        name: "{{ packages }}"
-        state: present
-      vars:
-        packages:
-        - docker-ce
-        - docker-ce-cli
-        - containerd.io
-
-    - name: Adiciona o usuario suporte no grupo docker
-      user:
-        name: suporte
-        group: docker
-
     - name: Adiciona o usuario vagrant no grupo docker
       user:
         name: vagrant
         group: docker
         
-    - name: Ativa o servico do Docker
-      service:
-        name: docker
-        enabled: yes
-        state: restarted
+    - name: Adiciona o usuario suporte no grupo docker
+      user:
+        name: suporte
+        group: docker
 
     - name: Cria a rede traefik
       shell: docker network create traefik
@@ -96,22 +58,5 @@
       args:
         chdir: /home/suporte/wordpress-deploy
       
-    - name: Alterando arquivo do SELinux
-      lineinfile: 
-          path: /etc/selinux/config
-          regexp: '^SELINUX='
-          line: 'SELINUX=disabled'
-
-    - name: Mudando para permissivo a politica do SELinux
-      selinux:
-        policy: targeted
-        state: permissive
-
-    - name: Desabilitando o Firewall
-      command: systemctl disable firewalld
-
-    - name: Parando FirewallD
-      command: systemctl stop firewalld
-
     - name: Reinicia a VM
       command: reboot

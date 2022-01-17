@@ -13,22 +13,6 @@
         - 172.16.0.12 graylog
         - 172.16.0.13 kibana kibana.4labs.example
 
-    - name: Adicionar usuario suporte
-      user:
-        name: suporte
-        shell: /bin/bash
-        password : $1$QbUARykG$p2nthVG8AkDvabKPHwboa1
-        
-    - name: Criando o arquivo 98_4linux
-      copy:
-        src: files/98_4linux
-        dest: /etc/sudoers.d
-        mode: 0644
-
-    - name: Instalando pacotes de dependencias para o curso
-      apt:
-        name: ['unzip', 'wget', 'elinks', 'rsync', 'vim']
-
     - name: Criando diretorio /opt/filebeat
       synchronize:
         src: files/filebeat
