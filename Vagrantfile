@@ -4,7 +4,7 @@
 VAGRANT_DISABLE_VBOXSYMLINKCREATE=1
 
 vms = {
-  'webserver-audit' => {'memory' => '2048', 'cpus' => 1, 'ip' => '11', 'box' => 'devopsbox/centos-8.5-docker', 'provision' => 'provision/ansible/webserver.yaml'},
+  'webserver-audit' => {'memory' => '2048', 'cpus' => 1, 'ip' => '11', 'box' => 'devopsbox/centos-8.5-docker-ansible-2.9', 'provision' => 'provision/ansible/webserver.yaml'},
   'graylog-audit' => {'memory' => '2560', 'cpus' => 1, 'ip' => '12', 'box' => 'devopsbox/ubuntu-20.04','provision' => 'provision/ansible/graylog.yaml'},
   'kibana-audit' => {'memory' => '2560', 'cpus' => 1, 'ip' => '13', 'box' => 'devopsbox/debian-10.11', 'provision' => 'provision/ansible/kibana.yaml'}
 }
